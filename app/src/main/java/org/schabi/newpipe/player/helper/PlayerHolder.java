@@ -241,13 +241,6 @@ public final class PlayerHolder {
                 }
 
                 @Override
-                public void onScreenRotationButtonClicked() {
-                    if (listener != null) {
-                        listener.onScreenRotationButtonClicked();
-                    }
-                }
-
-                @Override
                 public void onMoreOptionsLongClicked() {
                     if (listener != null) {
                         listener.onMoreOptionsLongClicked();
