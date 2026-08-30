@@ -5081,8 +5081,9 @@ case ERROR_CODE_DECODER_INIT_FAILED: {
                 ? forcedAspectRatio : videoNaturalAspectRatio);
         isVerticalVideo = videoSize.width < videoSize.height;
 
-        // TODO: if fullscreen/orientation linkage is enabled, request the video orientation
-        // through the single orientation function.
+        if (isFullscreen) {
+            PlayerUiModeHelper.applyVideoOrientation(this);
+        }
 
         setupScreenRotationButton();
     }
