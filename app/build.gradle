@@ -10,8 +10,18 @@ def keyPath = System.getenv("KEY_PATH")
 def keyStorePassword = System.getenv("KEY_STORE_PASSWORD")
 def signingKeyAlias = System.getenv("KEY_ALIAS")
 def signingKeyPassword = System.getenv("KEY_PASSWORD")
-def baseVersionCode = 1107
-def appVersionName = "5.3.1-beta"
+// GITHUB_RUN_NUMBER is automatically provided by GitHub Actions on every CI
+// run (no workflow config needed) and increases by 1 on every push. Using it
+// both here and as the GitHub Release tag (see ci.yml) keeps the installed
+// app's own version and the "latest available version" the update checker
+// polls for perfectly in sync: right after installing the newest CI build,
+// the app correctly reports itself as up to date, and each subsequent push
+// produces a strictly higher versionCode so Android allows installing it
+// as a normal in-place update. Local/manual builds outside CI are
+// unaffected (falls back to the original static 5.3.1-beta / 1107).
+def ciRunNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "0") as Integer
+def baseVersionCode = 1107 + ciRunNumber
+def appVersionName = ciRunNumber > 0 ? "5.3.1-beta" + ciRunNumber : "5.3.1-beta"
 def abiCodes = ['armeabi-v7a': 1, 'x86': 2, 'x86_64': 3, 'arm64-v8a': 4]
 def stableBuildConfigVersionCode =
         (100 * baseVersionCode) + abiCodes['armeabi-v7a']
