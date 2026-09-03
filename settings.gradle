@@ -31,7 +31,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "PipePipe"
+rootProject.name = "ZahinArYouTube"
 
 include ':app'
 include ':ffmpeg'

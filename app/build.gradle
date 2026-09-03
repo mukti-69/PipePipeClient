@@ -166,7 +166,7 @@ androidComponents.onVariants(androidComponents.selector().all()) { variant ->
         }
         output.versionCode.set(versionCode)
         output.outputFileName.set(
-                "PipePipe_${appVersionName}-${abi ?: 'universal'}-${variant.name}.apk")
+                "ZahinArYouTube_${appVersionName}-${abi ?: 'universal'}-${variant.name}.apk")
     }
 }
 
