@@ -28,6 +28,12 @@
         <item name="android:windowBackground">@color/light_background_color</item>
         <item name="windowBackground">@color/light_background_color</item>
         <item name="bottomSheetDialogTheme">@style/BottomSheetDialogTheme.Light.Base</item>
+        <!-- Toolbar/status bar is now white (YouTube-style neutral chrome,
+             not solid brand-red) - this switches the OS status bar's own
+             icons (clock/battery/wifi) to dark so they stay visible against
+             the light background instead of disappearing (white-on-white).
+             API 23+ only, matches this app's minSdk exactly. -->
+        <item name="android:windowLightStatusBar">true</item>
 
         <item name="separator_color">@color/light_separator_color</item>
         <item name="contrast_background_color">@color/light_contrast_background_color</item>
