@@ -182,11 +182,21 @@ public class MainActivity extends AppCompatActivity {
             prefs.edit().putString(getString(R.string.preferred_audio_language_key), "original").apply();
         } // remove this after sometime
 
-        if (prefs.getBoolean(app.getString(R.string.update_app_key), false)) {
+        if (prefs.getBoolean(app.getString(R.string.update_app_key), true)) {
             // Start the worker which is checking all conditions
             // and eventually searching for a new version.
                 NewVersionWorker.enqueueNewVersionCheckingWork(app, false);
         }
+
+        // NOTE (Zahin ar YouTube): this used to only run once, inside the
+        // isFirstRun block below, alongside 2-3 other dialogs competing for
+        // attention on that one launch - easy to miss or dismiss without
+        // noticing. checkNotificationPermission() already no-ops safely if
+        // notifications are already enabled, so calling it on every launch
+        // is safe and fixes update notifications (and background-playback
+        // notifications, which need the same OS permission) never showing
+        // if that first prompt was missed, denied, or simply never granted.
+        PermissionChecker.checkNotificationPermission(this);
 
         int currentVersionCode = BuildConfig.VERSION_CODE;
 
@@ -217,7 +227,6 @@ public class MainActivity extends AppCompatActivity {
             builder.setNegativeButton(R.string.no, (dialog, which) -> prefs.edit().putBoolean(app.getString(R.string.update_app_key), false).apply());
             builder.show();
             prefs.edit().putInt("isFirstRun", 1).apply();
-            PermissionChecker.checkNotificationPermission(this);
         }
     }
 

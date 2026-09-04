@@ -8,22 +8,20 @@
     android:background="@drawable/welcome_gradient_background"
     tools:context=".WelcomeActivity">
 
-    <!-- Flexible, non-circular photo container. Shape/aspect intentionally
-         left open for now (rounded-corner card, not forced into a circle)
-         so the final presentation can be tuned once the real photo is in.
-         Reserved for a personal photo - not populated with any stock image.
-         Plain FrameLayout + drawable background (NOT MaterialCardView -
-         this app's theme is Theme.AppCompat, not Theme.MaterialComponents,
-         and MaterialCardView hard-requires the latter and crashes on
-         inflate otherwise). -->
+    <!-- Personal photo, in the flexible (non-circular) rounded card
+         container. clipToOutline on the FrameLayout clips the photo to
+         the same rounded-rect shape as its background (API 21+, no
+         extra library needed). Container ratio is 9:16 to closely
+         match this photo's actual proportions so centerCrop doesn't
+         cut off the head/face. -->
     <FrameLayout
         android:id="@+id/welcomePhotoPlaceholder"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintWidth_max="260dp"
-        app:layout_constraintHeight_max="260dp"
-        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintWidth_max="200dp"
+        app:layout_constraintDimensionRatio="9:16"
         android:background="@drawable/welcome_photo_placeholder_card"
+        android:clipToOutline="true"
         android:layout_marginStart="40dp"
         android:layout_marginEnd="40dp"
         app:layout_constraintTop_toTopOf="parent"
@@ -35,12 +33,10 @@
 
         <ImageView
             android:id="@+id/welcomePhotoPlaceholderIcon"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_gravity="center"
-            android:alpha="0.6"
-            android:src="@drawable/ic_person"
-            app:tint="#FFFFFFFF"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/welcome_personal_photo"
             android:contentDescription="@null" />
     </FrameLayout>
 
