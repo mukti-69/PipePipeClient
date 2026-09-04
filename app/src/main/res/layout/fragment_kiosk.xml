@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -41,8 +42,7 @@
             android:alpha="0.55"
             android:src="@drawable/ic_movie"
             app:tint="?attr/colorPrimary"
-            android:contentDescription="@null"
-            tools:ignore="UseAppTint" />
+            android:contentDescription="@null" />
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:layout_width="wrap_content"
