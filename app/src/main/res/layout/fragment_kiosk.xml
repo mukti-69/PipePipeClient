@@ -9,6 +9,8 @@
         android:id="@+id/items_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:paddingHorizontal="10dp"
+        android:clipToPadding="false"
         android:scrollbars="vertical"
         tools:listitem="@layout/list_stream_item" />
 
@@ -26,27 +28,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
         android:paddingTop="90dp"
         android:visibility="gone"
         tools:visibility="visible">
 
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="10dp"
-            android:fontFamily="monospace"
-            android:text="(╯°-°)╯"
-            android:textSize="35sp"
-            tools:ignore="HardcodedText,UnusedAttribute" />
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="16dp"
+            android:alpha="0.55"
+            android:src="@drawable/ic_movie"
+            app:tint="?attr/colorPrimary"
+            android:contentDescription="@null"
+            tools:ignore="UseAppTint" />
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:alpha="0.72"
             android:text="@string/empty_view_no_videos"
-            android:textSize="24sp" />
+            android:textSize="16sp" />
 
     </LinearLayout>
 
