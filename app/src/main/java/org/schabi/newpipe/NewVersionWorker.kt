@@ -1,14 +1,17 @@
 package org.schabi.newpipe
 
+import android.app.DownloadManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
@@ -24,6 +27,7 @@ import org.schabi.newpipe.extractor.downloader.Response
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import org.schabi.newpipe.util.ReleaseVersionUtil.coerceUpdateCheckExpiry
 import org.schabi.newpipe.util.ReleaseVersionUtil.isLastUpdateCheckExpired
+import java.io.File
 import java.io.IOException
 
 class NewVersionWorker(
@@ -63,8 +67,104 @@ class NewVersionWorker(
             return
         }
 
-        // A pending intent to open the apk location url in the browser.
-        val intent = Intent(Intent.ACTION_VIEW, apkLocationUrl?.toUri())
+        // Auto-download the APK in the background, then point the
+        // notification straight at Android's install screen for it -
+        // this removes the "open browser, find the file, tap it" steps.
+        // The final system install-confirmation tap is unavoidable on
+        // stock, non-rooted Android for any app outside an app store;
+        // this is the closest to automatic that's possible without
+        // bypassing Android's own install security.
+        if (apkLocationUrl != null) {
+            downloadApkAndNotify(apkLocationUrl, versionName)
+        }
+    }
+
+    private fun downloadApkAndNotify(apkUrl: String, versionName: String) {
+        val downloadManager = applicationContext
+            .getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val fileName = "ZahinArYouTube_update.apk"
+        val request = DownloadManager.Request(apkUrl.toUri())
+            .setTitle(applicationContext.getString(R.string.app_update_notification_content_title_new))
+            .setDestinationInExternalFilesDir(
+                applicationContext, Environment.DIRECTORY_DOWNLOADS, fileName
+            )
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN)
+
+        val downloadId = try {
+            downloadManager.enqueue(request)
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not enqueue update download, falling back to browser link", e)
+            showBrowserFallbackNotification(apkUrl, versionName)
+            return
+        }
+
+        try {
+            // Worker already runs off the main thread, so a short poll loop
+            // here is safe and simple - avoids needing a separate
+            // BroadcastReceiver just for this one-shot check.
+            var attemptsLeft = 600 // ~10 minutes at 1s intervals, generous for a slow connection
+            while (attemptsLeft > 0) {
+                val cursor = downloadManager.query(DownloadManager.Query().setFilterById(downloadId))
+                if (cursor.moveToFirst()) {
+                    val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                    when (status) {
+                        DownloadManager.STATUS_SUCCESSFUL -> {
+                            cursor.close()
+                            showInstallReadyNotification(fileName, versionName)
+                            return
+                        }
+                        DownloadManager.STATUS_FAILED -> {
+                            cursor.close()
+                            Log.w(TAG, "Update download failed, falling back to browser link")
+                            showBrowserFallbackNotification(apkUrl, versionName)
+                            return
+                        }
+                    }
+                }
+                cursor.close()
+                attemptsLeft--
+                Thread.sleep(1000)
+            }
+            // Timed out waiting - fall back rather than leaving the user with no notification at all.
+            showBrowserFallbackNotification(apkUrl, versionName)
+        } catch (e: Exception) {
+            // Anything unexpected here (FileProvider mismatch, storage issue, etc.)
+            // must never crash the app - always fall back to the safe browser link.
+            Log.w(TAG, "Unexpected error preparing update install notification, falling back", e)
+            showBrowserFallbackNotification(apkUrl, versionName)
+        }
+    }
+
+    private fun showInstallReadyNotification(fileName: String, versionName: String) {
+        val apkFile = File(
+            applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName
+        )
+        val apkUri = FileProvider.getUriForFile(
+            applicationContext, "${applicationContext.packageName}.updateprovider", apkFile
+        )
+        val installIntent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(apkUri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            applicationContext, 0, installIntent,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            else PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val channelId = applicationContext.getString(R.string.app_update_notification_channel_id)
+        val notificationBuilder = NotificationCompat.Builder(applicationContext, channelId)
+            .setSmallIcon(R.drawable.ic_newpipe_update)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setContentTitle(applicationContext.getString(R.string.app_update_notification_content_title_new))
+            .setContentText("Update $versionName downloaded - tap to install")
+        NotificationManagerCompat.from(applicationContext).notify(2000, notificationBuilder.build())
+    }
+
+    private fun showBrowserFallbackNotification(apkLocationUrl: String, versionName: String) {
+        val intent = Intent(Intent.ACTION_VIEW, apkLocationUrl.toUri())
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val pendingIntent = PendingIntent.getActivity(
             applicationContext, 0, intent,
@@ -83,8 +183,7 @@ class NewVersionWorker(
                 applicationContext.getString(R.string.app_update_notification_content_text) +
                     " " + versionName
             )
-        val notificationManager = NotificationManagerCompat.from(applicationContext)
-        notificationManager.notify(2000, notificationBuilder.build())
+        NotificationManagerCompat.from(applicationContext).notify(2000, notificationBuilder.build())
     }
 
     @Throws(IOException::class, ReCaptchaException::class)

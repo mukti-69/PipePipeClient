@@ -4,6 +4,13 @@
           android:installLocation="auto">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Needed so the update notification can open Android's own package
+         installer for the auto-downloaded APK. This does NOT skip or
+         bypass Android's install confirmation screen - the user still
+         has to tap through the normal system install dialog, same as
+         installing any APK. It only removes the need to manually find
+         the file afterwards. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -206,6 +213,21 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/nnf_provider_paths" />
+        </provider>
+
+        <!-- Dedicated FileProvider for the auto-downloaded update APK
+             (NewVersionWorker). Separate authority from the file-picker
+             library's provider above so this change can't affect any
+             existing sharing/download-export functionality. Reuses the
+             existing (previously unused) provider_paths.xml. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updateprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
         </provider>
 
         <activity
