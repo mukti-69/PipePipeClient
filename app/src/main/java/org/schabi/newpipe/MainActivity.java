@@ -160,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (final Exception e) {
             ErrorUtil.showUiErrorSnackbar(this, "Setting up drawer", e);
         }
+        setupBottomNavigation();
         if (DeviceUtils.isTv(this)) {
             FocusOverlayView.setupFocusObserver(this);
         }
@@ -304,6 +305,46 @@ public class MainActivity extends AppCompatActivity {
         drawerLayoutBinding.navigation.getMenu()
                 .add(R.id.menu_options_about_group, ITEM_ID_ABOUT, ORDER, R.string.tab_about)
                 .setIcon(R.drawable.ic_info_outline);
+    }
+
+    private void setupBottomNavigation() {
+        mainBinding.bottomNavigation.setOnItemSelectedListener(item -> {
+            final int id = item.getItemId();
+            if (id == R.id.bottom_nav_home) {
+                NavigationHelper.openMainFragment(getSupportFragmentManager());
+                return true;
+            } else if (id == R.id.bottom_nav_subscriptions) {
+                NavigationHelper.openSubscriptionFragment(getSupportFragmentManager());
+                return true;
+            } else if (id == R.id.bottom_nav_you) {
+                showYouPopupMenu();
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void showYouPopupMenu() {
+        final View anchor = mainBinding.bottomNavigation.findViewById(R.id.bottom_nav_you);
+        final PopupMenu popup = new PopupMenu(
+                this, anchor != null ? anchor : mainBinding.bottomNavigation);
+        popup.getMenuInflater().inflate(R.menu.menu_you_popup, popup.getMenu());
+        popup.setOnMenuItemClickListener(item -> {
+            final int id = item.getItemId();
+            if (id == R.id.you_menu_history) {
+                NavigationHelper.openStatisticFragment(getSupportFragmentManager());
+            } else if (id == R.id.you_menu_bookmarks) {
+                NavigationHelper.openBookmarksFragment(getSupportFragmentManager());
+            } else if (id == R.id.you_menu_downloads) {
+                NavigationHelper.openDownloads(this);
+            } else if (id == R.id.you_menu_settings) {
+                NavigationHelper.openSettings(this);
+            } else {
+                return false;
+            }
+            return true;
+        });
+        popup.show();
     }
 
     private boolean drawerItemSelected(final MenuItem item) {

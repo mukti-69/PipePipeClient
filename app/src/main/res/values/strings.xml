@@ -30,6 +30,8 @@
 <string name="subscription_update_failed">Could not update subscription</string>
 <string name="show_info">Show info</string>
 <string name="tab_subscriptions">Subscriptions</string>
+<string name="tab_home">Home</string>
+<string name="tab_you">You</string>
 <string name="tab_bookmarks">Bookmarked Playlists</string>
 <string name="tab_choose">Choose Tab</string>
 <string name="back">Back</string>
