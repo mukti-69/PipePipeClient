@@ -56,6 +56,11 @@ public class StreamInfoItemHolder extends InfoItemHolder {
     public final TextView itemDurationView;
     private final AnimatedProgressBar itemProgressView;
     public final TextView itemAdditionalDetails;
+    // Nullable: only present in list_stream_card_item.xml (Home feed grid),
+    // not in the plain list_stream_item.xml layout used elsewhere (search
+    // results, etc.) - findViewById returns null there instead of throwing,
+    // so this holder still works safely for both layouts.
+    private final ImageView itemUploaderAvatarView;
 
     public StreamInfoItemHolder(final InfoItemBuilder infoItemBuilder, final ViewGroup parent) {
         this(infoItemBuilder, R.layout.list_stream_item, parent);
@@ -70,6 +75,7 @@ public class StreamInfoItemHolder extends InfoItemHolder {
         itemDurationView = itemView.findViewById(R.id.itemDurationView);
         itemProgressView = itemView.findViewById(R.id.itemProgressView);
         itemAdditionalDetails = itemView.findViewById(R.id.itemAdditionalDetails);
+        itemUploaderAvatarView = itemView.findViewById(R.id.itemUploaderAvatarView);
     }
 
     @Override
@@ -82,6 +88,13 @@ public class StreamInfoItemHolder extends InfoItemHolder {
 
         itemVideoTitleView.setText(item.getName());
         itemUploaderView.setText(item.getUploaderName());
+
+        if (itemUploaderAvatarView != null) {
+            // Real channel avatar data (already used elsewhere in the app -
+            // VideoDetailFragment, comments), same existing image loader,
+            // no new dependency, no fake/placeholder image.
+            PicassoHelper.loadAvatar(item.getUploaderAvatarUrl()).into(itemUploaderAvatarView);
+        }
 
         if (item.requiresMembership()) {
             itemDurationView.setText(R.string.paid_video);
